@@ -22,12 +22,25 @@ if(isset($_POST['submit'])){
     actually deducted from a clients side/your test phone number once the PIN has been entered to authorize the transaction. 
     for developer/test accounts, this money will be reversed automatically by midnight.
   */
-  
-   $PartyA = $_POST['phone']; // This is your phone number, 
-  $AccountReference = '2255';
-  $TransactionDesc = 'Test Payment';
-  $Amount = $_POST['amount'];
- 
+$phone = $_POST['phone'];
+
+// Remove spaces
+$phone = str_replace(' ', '', $phone);
+
+// Normalize phone number
+if (preg_match('/^07\d{8}$/', $phone)) {
+    // 0712345678 → 254712345678
+    $phone = '254' . substr($phone, 1);
+} elseif (preg_match('/^\+2547\d{8}$/', $phone)) {
+    // +254712345678 → 254712345678
+    $phone = substr($phone, 1);
+} elseif (preg_match('/^2547\d{8}$/', $phone)) {
+    // already correct → do nothing
+} else {
+    die("Invalid phone number format");
+}
+
+$PartyA = $phone;
   # Get the timestamp, format YYYYmmddhms -> 20181004151020
   $Timestamp = date('YmdHis');    
   

@@ -20,7 +20,7 @@
       @import url("https://fonts.googleapis.com/css2?family=Rubik:wght@500&display=swap");
 
       body {
-        background-color: #eaedf4;
+        background-color: #1844a8;
         font-family: "Rubik", sans-serif;
       }
 
@@ -82,7 +82,7 @@
         <div class="media mt-4 pl-2">
          
           <div class="media-body">
-            <h6 class="mt-1">Enter Amount as well as Phone  Number</h6>
+            <h6 class="mt-1">Enter Amount as well as Phone </h6>
           </div>
         </div>
         <div class="media mt-3 pl-2">
