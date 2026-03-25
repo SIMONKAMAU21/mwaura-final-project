@@ -1,0 +1,11 @@
+document.addEventListener('DOMContentLoaded', function() {
+  // Chat Button Click Event
+  document.getElementById('chat-button').addEventListener('click', function() {
+    document.getElementById('chat-widget').style.display = 'block';
+  });
+
+  // Close Chat Widget Event
+  document.getElementById('close-chat').addEventListener('click', function() {
+    document.getElementById('chat-widget').style.display = 'none';
+  });
+});
