@@ -1,17 +1,11 @@
 <?php
-
 session_start();
 
-unset($_SESSION["uid"]);
+// Clear all session variables
+session_unset();
+session_destroy();
 
-unset($_SESSION["name"]);
-
-$BackToMyPage = $_SERVER['HTTP_REFERER'];
-if(isset($BackToMyPage)) {
-    header('Location: '.$BackToMyPage);
-} else {
-    header('Location: index.php'); // default page
-}
-   
-
+// Redirect to home page
+header('Location: index.php');
+exit();
 ?>

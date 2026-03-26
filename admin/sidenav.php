@@ -65,12 +65,12 @@
           </li>
           <li class="nav-item ">
             <a class="nav-link" href="manageuser.php">
-              <i class="material-icons">edit_user</i>
-              <p>Manage User</p>
+              <i class="material-icons">manage_accounts</i>
+              <p>Manage Users & Roles</p>
             </a>
           </li>
           <li class="nav-item ">
-            <a class="nav-link" href="index.php">
+            <a class="nav-link" href="../logout.php">
               <i class="material-icons">logout</i>
               <p>Logout</p>
             </a>

@@ -58,6 +58,13 @@ if (isset($_SESSION["uid"])) {
             (`order_pro_id`,`order_id`,`product_id`,`qty`,`amt`) 
             VALUES (NULL, '$order_id','$prod_id','$prod_qty','$sub_total')";
             if(mysqli_query($con,$sql1)){
+
+                // ---- Insert into orders table (for shipper assignment) ----
+                $sql_order = "INSERT INTO `orders` (`user_id`, `product_id`, `qty`, `trx_id`, `p_status`, `shipper_id`) 
+                              VALUES ('$user_id', '$prod_id', '$prod_qty', 'CHECKOUT-$order_id', 'Pending', NULL)";
+                mysqli_query($con, $sql_order);
+                // ---- End orders insert ----
+
                 $del_sql="DELETE from cart where user_id=$user_id";
                 if(mysqli_query($con,$del_sql)){
                     echo"<script>window.location.href='store.php'</script>";

@@ -1,6 +1,68 @@
 <?php
-if(isset($_POST['submit'])){
+session_start();
+include "db.php";
 
+if(isset($_POST['submit'])){
+    if (!isset($_SESSION["uid"])) {
+        die("User not logged in");
+    }
+    $user_id = $_SESSION["uid"];
+
+    // ---- START ORDER CREATION LOGIC (Adapted from checkout_process.php) ----
+    
+    // 1. Fetch user billing info
+    $user_query = mysqli_query($con, "SELECT * FROM user_info WHERE user_id='$user_id'");
+    $user_data = mysqli_fetch_array($user_query);
+    $f_name = $user_data["first_name"] . ' ' . $user_data["last_name"];
+    $email = $user_data['email'];
+    $address = $user_data['address1'];
+    $city = $user_data['address2'];
+    $state = ""; // Not in user_info table
+    $zip = "";   // Not in user_info table
+    
+    // 2. Determine new order_id
+    $sql0 = "SELECT MAX(order_id) AS max_val from `orders_info`";
+    $runquery = mysqli_query($con, $sql0);
+    $row = mysqli_fetch_array($runquery);
+    $order_id = ($row["max_val"] ?? 0) + 1;
+
+    // 3. Get Cart Totals and Items
+    $cart_query = "SELECT a.product_id, a.product_price, b.qty FROM products a, cart b WHERE a.product_id=b.p_id AND b.user_id='$user_id'";
+    $run_cart = mysqli_query($con, $cart_query);
+    $total_count = mysqli_num_rows($run_cart);
+    $prod_total = $_POST['amount']; // From m-pesa.php
+
+    // 4. Insert into orders_info
+    $sql_info = "INSERT INTO `orders_info` 
+    (`order_id`,`user_id`,`f_name`, `email`,`address`, `city`, `state`, `zip`, `cardname`,`cardnumber`,`expdate`,`prod_count`,`total_amt`,`cvv`) 
+    VALUES ($order_id, '$user_id','$f_name','$email', '$address', '$city', '$state', '$zip','M-PESA','N/A','N/A','$total_count','$prod_total','N/A')";
+    
+    if(mysqli_query($con, $sql_info)){
+        // 5. Loop through cart items for order_products and orders
+        while($cart_item = mysqli_fetch_assoc($run_cart)){
+            $prod_id = $cart_item['product_id'];
+            $prod_qty = $cart_item['qty'];
+            $prod_price = $cart_item['product_price'];
+            $sub_total = $prod_price * $prod_qty;
+
+            // Insert into order_products
+            $sql_prods = "INSERT INTO `order_products` (`order_pro_id`,`order_id`,`product_id`,`qty`,`amt`) 
+                          VALUES (NULL, '$order_id', '$prod_id', '$prod_qty', '$sub_total')";
+            mysqli_query($con, $sql_prods);
+
+            // Insert into orders (for shipper assignment)
+            $sql_orders = "INSERT INTO `orders` (`user_id`, `product_id`, `qty`, `trx_id`, `p_status`, `shipper_id`) 
+                           VALUES ('$user_id', '$prod_id', '$prod_qty', 'MPESA-INIT-$order_id', 'Pending', NULL)";
+            mysqli_query($con, $sql_orders);
+        }
+
+        // 6. Clear Cart
+        mysqli_query($con, "DELETE FROM cart WHERE user_id='$user_id'");
+    } else {
+        die("Order creation failed: " . mysqli_error($con));
+    }
+    
+    // ---- END ORDER CREATION LOGIC ----
 
   date_default_timezone_set('Africa/Nairobi');
 
@@ -13,17 +75,7 @@ if(isset($_POST['submit'])){
   $BusinessShortCode = '174379';
   $Passkey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';  
   
-  /*
-    This are your info, for
-    $PartyA should be the ACTUAL clients phone number or your phone number, format 2547********
-    $AccountRefference, it maybe invoice number, account number etc on production systems, but for test just put anything
-    TransactionDesc can be anything, probably a better description of or the transaction
-    $Amount this is the total invoiced amount, Any amount here will be 
-    actually deducted from a clients side/your test phone number once the PIN has been entered to authorize the transaction. 
-    for developer/test accounts, this money will be reversed automatically by midnight.
-  */
-  
-$phone = $_POST['phone'];
+  $phone = $_POST['phone'];
 
 // Remove spaces
 $phone = str_replace(' ', '', $phone);
@@ -42,8 +94,8 @@ if (preg_match('/^07\d{8}$/', $phone)) {
 }
 
 $PartyA = $phone;
-  $AccountReference = '2255';
-  $TransactionDesc = 'Test Payment';
+  $AccountReference = 'Order #'.$order_id;
+  $TransactionDesc = 'Payment for Order #'.$order_id;
   $Amount = $_POST['amount'];
  
   # Get the timestamp, format YYYYmmddhms -> 20181004151020
@@ -59,8 +111,10 @@ $PartyA = $phone;
   $access_token_url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
   $initiate_url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
 
-  # callback url
-  $CallBackURL = 'https://morning-basin-87523.herokuapp.com/callback_url.php';  
+  # Callback URL: This MUST be a publicly accessible HTTPS URL.
+  # If you are on localhost, use a tool like ngrok to expose your server.
+  // Example: $CallBackURL = 'https://a1b2-c3d4.ngrok-free.app/mwaura-final-project/callback_url.php';
+  $CallBackURL = 'https://webhook.site/14fdb365-92a5-4fe8-8e0e-67a754cc7ff9'; // Replace this with your public URL
 
   $curl = curl_init($access_token_url);
   curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
@@ -101,6 +155,16 @@ $PartyA = $phone;
   curl_setopt($curl, CURLOPT_POST, true);
   curl_setopt($curl, CURLOPT_POSTFIELDS, $data_string);
   $curl_response = curl_exec($curl);
+
+  $response = json_decode($curl_response, true);
+  $checkoutRequestID = $response['CheckoutRequestID'] ?? null;
+
+if ($checkoutRequestID) {
+    mysqli_query($con, "
+        INSERT INTO transactions (order_id, phone, amount, status, checkoutRequestID)
+        VALUES ('$order_id', '$PartyA', '$Amount', 'pending', '$checkoutRequestID')
+    ");
+}
   print_r($curl_response);
 
   echo $curl_response;

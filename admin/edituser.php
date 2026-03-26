@@ -4,9 +4,9 @@ session_start();
 include("../db.php");
 $user_id=$_REQUEST['user_id'];
 
-$result=mysqli_query($con,"select user_id,first_name,last_name, email, password from user_info where user_id='$user_id'")or die ("query 1 incorrect.......");
+$result=mysqli_query($con,"select user_id,first_name,last_name, email, password, role from user_info where user_id='$user_id'")or die ("query 1 incorrect.......");
 
-list($user_id,$first_name,$last_name,$email,$user_password)=mysqli_fetch_array($result);
+list($user_id,$first_name,$last_name,$email,$user_password,$role)=mysqli_fetch_array($result);
 
 if(isset($_POST['btn_save'])) 
 {
@@ -15,8 +15,11 @@ $first_name=$_POST['first_name'];
 $last_name=$_POST['last_name'];
 $email=$_POST['email'];
 $user_password=$_POST['password'];
+$role=$_POST['role'];
+$allowed_roles = ['customer','admin','shipper'];
+if (!in_array($role, $allowed_roles)) { $role = 'customer'; }
 
-mysqli_query($con,"update user_info set first_name='$first_name', last_name='$last_name', email='$email', password='$user_password' where user_id='$user_id'")or die("Query 2 is inncorrect..........");
+mysqli_query($con,"update user_info set first_name='$first_name', last_name='$last_name', email='$email', password='$user_password', role='$role' where user_id='$user_id'")or die("Query 2 is inncorrect..........");
 
 header("location: manageuser.php");
 mysqli_close($con);
@@ -58,6 +61,16 @@ include "topheader.php";
                       <div class="form-group">
                         <label >Password</label>
                         <input type="text" name="password" id="password" class="form-control" value="<?php echo $user_password; ?>">
+                      </div>
+                    </div>
+                    <div class="col-md-12 ">
+                      <div class="form-group">
+                        <label>User Role</label>
+                        <select name="role" id="role" class="form-control">
+                          <option value="customer" <?php echo ($role=='customer') ? 'selected' : ''; ?>>Customer</option>
+                          <option value="shipper" <?php echo ($role=='shipper') ? 'selected' : ''; ?>>Shipper</option>
+                          <option value="admin" <?php echo ($role=='admin') ? 'selected' : ''; ?>>Admin</option>
+                        </select>
                       </div>
                     </div>
                   

@@ -348,6 +348,7 @@ INSERT INTO `products` (`product_id`, `product_cat`, `product_brand`, `product_t
 
 CREATE TABLE `user_info` (
   `user_id` int(10) NOT NULL,
+  `role` ENUM('customer','admin','shipper') NOT NULL DEFAULT 'customer',
   `first_name` varchar(100) NOT NULL,
   `last_name` varchar(100) NOT NULL,
   `email` varchar(300) NOT NULL,
@@ -466,6 +467,8 @@ ALTER TABLE `logs`
 ALTER TABLE `orders`
   ADD PRIMARY KEY (`order_id`);
 
+  ALTER TABLE `orders`
+  ADD shipper_id int(10) ;
 --
 -- Indexes for table `orders_info`
 --
