@@ -115,7 +115,6 @@ if (isset($_POST['submit'])) {
     # If you are on localhost, use a tool like ngrok to expose your server.
     // Example: $CallBackURL = 'https://a1b2-c3d4.ngrok-free.app/mwaura-final-project/callback_url.php';
     $CallBackURL = 'https://mwaura-final-project.onrender.com/callback_url.php'; // Replace this with your public URL
-
     $curl = curl_init($access_token_url);
     curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
