@@ -58,6 +58,51 @@ if (isset($_POST['submit'])) {
 
         // 6. Clear Cart
         mysqli_query($con, "DELETE FROM cart WHERE user_id='$user_id'");
+
+        // 7. Send Order Received Email (HTML)
+        $to = $email;
+        $subject = "Order #$order_id Has been Received - SHOPX";
+
+        $message = "
+        <html>
+        <head>
+            <style>
+                .wrapper { background-color: #f4f4f4; padding: 20px; font-family: sans-serif; }
+                .container { background-color: #ffffff; padding: 40px; border-radius: 8px; max-width: 600px; margin: 0 auto; }
+                .header { text-align: center; border-bottom: 2px solid #6729ab; padding-bottom: 20px; }
+                .header h1 { color: #6729ab; margin: 0; }
+                .content { padding-top: 30px; line-height: 1.6; color: #333; }
+                .order-id { font-weight: bold; color: #6729ab; }
+                .footer { margin-top: 30px; font-size: 12px; color: #777; text-align: center; border-top: 1px solid #ddd; padding-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class='wrapper'>
+                <div class='container'>
+                    <div class='header'>
+                        <h1>SHOPX</h1>
+                    </div>
+                    <div class='content'>
+                        <h2>Hello $f_name,</h2>
+                        <p>Thank you for shopping with us! Your order <span class='order-id'>#$order_id</span> has been successfully received.</p>
+                        <p>We are waiting for your M-Pesa payment confirmation. Once confirmed, we will begin processing your order.</p>
+                        <p>If you have any questions, feel free to reply to this email.</p>
+                        <p>Best regards,<br>The SHOPX Team</p>
+                    </div>
+                    <div class='footer'>
+                        &copy; " . date('Y') . " SHOPX Online Store. All rights reserved.
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        ";
+
+        $headers = "MIME-Version: 1.0" . "\r\n";
+        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+        $headers .= "From: no-reply@shopx.com" . "\r\n";
+
+        mail($to, $subject, $message, $headers);
     } else {
         die("Order creation failed: " . mysqli_error($con));
     }
@@ -67,13 +112,12 @@ if (isset($_POST['submit'])) {
     date_default_timezone_set('Africa/Nairobi');
 
     # access token
-    $consumerKey = 'nk16Y74eSbTaGQgc9WF8j6FigApqOMWr'; //Fill with your app Consumer Key
-    $consumerSecret = '40fD1vRXCq90XFaU'; // Fill with your app Secret
+    $consumerKey = getenv('MPESA_CONSUMER_KEY') ?: 'nk16Y74eSbTaGQgc9WF8j6FigApqOMWr';
+    $consumerSecret = getenv('MPESA_CONSUMER_SECRET') ?: '40fD1vRXCq90XFaU';
 
     # define the variales
-    # provide the following details, this part is found on your test credentials on the developer account
-    $BusinessShortCode = '174379';
-    $Passkey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
+    $BusinessShortCode = getenv('MPESA_SHORTCODE') ?: '174379';
+    $Passkey = getenv('MPESA_PASSKEY') ?: 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
 
     $phone = $_POST['phone'];
 
@@ -112,9 +156,8 @@ if (isset($_POST['submit'])) {
     $initiate_url = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
 
     # Callback URL: This MUST be a publicly accessible HTTPS URL.
-    # If you are on localhost, use a tool like ngrok to expose your server.
-    // Example: $CallBackURL = 'https://a1b2-c3d4.ngrok-free.app/mwaura-final-project/callback_url.php';
-    $CallBackURL = 'https://mwaura-final-project.onrender.com/callback_url.php'; // Replace this with your public URL
+    $BaseURL = getenv('BASE_URL') ?: 'https://mwaura-final-project.onrender.com';
+    $CallBackURL = $BaseURL . '/callback_url.php';
     $curl = curl_init($access_token_url);
     curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);

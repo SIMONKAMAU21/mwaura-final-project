@@ -5,14 +5,14 @@ $errors  = array();
 $errmsg  = '';
 
 $config = array(
-    "env"              => "sandbox",
-    "BusinessShortCode"=> "174379",
-    "key"              => "KD9ACiBC6MuthHJQZINKAVGLSSzGO1V54W2RAlwHbD2VpV1A", //Enter your consumer key here
-    "secret"           => "iApoUurBlc3ZKxPYucNqA595KVQr5qYGlGxGKyGdKt08VOTs03mHNxuJ3j5XqCJA", //Enter your consumer secret here
-    "username"         => "MpesaTest",
+    "env"              => getenv('MPESA_ENV') ?: "sandbox",
+    "BusinessShortCode"=> getenv('MPESA_SHORTCODE') ?: "174379",
+    "key"              => getenv('MPESA_CONSUMER_KEY') ?: "nk16Y74eSbTaGQgc9WF8j6FigApqOMWr",
+    "secret"           => getenv('MPESA_CONSUMER_SECRET') ?: "40fD1vRXCq90XFaU",
+    "username"         => getenv('MPESA_USERNAME') ?: "MpesaTest",
     "TransactionType"  => "CustomerPayBillOnline",
-    "passkey"          => "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919", //Enter your passkey here
-    "CallBackURL"      => "https://f899-41-90-64-220.ngrok.io/mpesa/callback.php", //When using localhost, Use Ngrok to forward the response to your Localhost
+    "passkey"          => getenv('MPESA_PASSKEY') ?: "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919",
+    "CallBackURL"      => (getenv('BASE_URL') ?: "https://f899-41-90-64-220.ngrok.io") . "/mpesa/callback.php",
     "AccountReference" => "CompanyXLTD",
     "TransactionDesc"  => "Payment of X" ,
 );
@@ -86,7 +86,12 @@ if (isset($_POST['phone_number'])) {
         $CheckoutRequestID = $result['CheckoutRequestID'];
 
         //Saves your request to a database
-        $conn = mysqli_connect('localhost','project','12345','project');
+        $db_host = getenv('DB_HOST') ?: 'localhost';
+        $db_user = getenv('DB_USER') ?: 'root';
+        $db_pass = getenv('DB_PASSWORD') ?: '';
+        $db_name = getenv('DB_NAME') ?: 'onlineshop';
+
+        $conn = mysqli_connect($db_host, $db_user, $db_pass, $db_name);
        
          $sql = "INSERT INTO `orders`(`ID`, `OrderNo`, `Amount`, `Phone`, `CheckoutRequestID`, `MerchantRequestID`) VALUES ('','".$orderNo."','".$amount."','".$phone."','".$CheckoutRequestID."','".$MerchantRequestID."');";
         

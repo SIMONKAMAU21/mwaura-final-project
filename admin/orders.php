@@ -23,12 +23,50 @@ if (isset($_POST['assign_shipper'])) {
       $email_res = mysqli_query($con, $email_query);
       if ($email_data = mysqli_fetch_assoc($email_res)) {
         $to = $email_data['email'];
-        $subject = "Order #$order_id Assigned to Shipper";
-        $message = "Hello " . $email_data['cust_name'] . ",\n\n";
-        $message .= "Your order #$order_id has been assigned to our shipper, " . $email_data['ship_name'] . ".\n";
-        $message .= "You will receive further updates as your order moves towards delivery.\n\n";
-        $message .= "Thank you for shopping with us!";
-        $headers = "From: no-reply@shopx.com";
+        // HTML Email Template
+        $ship_name = $email_data['ship_name'];
+        $cust_name = $email_data['cust_name'];
+
+        $message = "
+        <html>
+        <head>
+            <style>
+                .wrapper { background-color: #f4f4f4; padding: 20px; font-family: sans-serif; }
+                .container { background-color: #ffffff; padding: 40px; border-radius: 8px; max-width: 600px; margin: 0 auto; }
+                .header { text-align: center; border-bottom: 2px solid #6729ab; padding-bottom: 20px; }
+                .header h1 { color: #6729ab; margin: 0; }
+                .content { padding-top: 30px; line-height: 1.6; color: #333; }
+                .order-id { font-weight: bold; color: #6729ab; }
+                .shipper { font-weight: bold; color: #28a745; }
+                .footer { margin-top: 30px; font-size: 12px; color: #777; text-align: center; border-top: 1px solid #ddd; padding-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class='wrapper'>
+                <div class='container'>
+                    <div class='header'>
+                        <h1>SHOPX</h1>
+                    </div>
+                    <div class='content'>
+                        <h2>Hello $cust_name,</h2>
+                        <p>Great news! Your order <span class='order-id'>#$order_id</span> has been assigned to our shipper, <span class='shipper'>$ship_name</span>.</p>
+                        <p>Your package is being prepared for transit. You will receive further updates as it moves towards delivery.</p>
+                        <p>If you have any questions, feel free to reply to this email.</p>
+                        <p>Best regards,<br>The SHOPX Team</p>
+                    </div>
+                    <div class='footer'>
+                        &copy; " . date('Y') . " SHOPX Online Store. All rights reserved.
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        ";
+
+        // Headers for HTML email
+        $headers = "MIME-Version: 1.0" . "\r\n";
+        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+        $headers .= "From: no-reply@shopx.com" . "\r\n";
 
         // Send email
         @mail($to, $subject, $message, $headers);

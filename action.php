@@ -472,9 +472,9 @@ if (isset($_POST["Common"])) {
 								}
 							  
 							echo   
-								'<input type="hidden" name="return" value="http://localhost/myfiles/public_html/payment_success.php"/>
-					                <input type="hidden" name="notify_url" value="http://localhost/myfiles/public_html/payment_success.php">
-									<input type="hidden" name="cancel_return" value="http://localhost/myfiles/public_html/cancel.php"/>
+								'<input type="hidden" name="return" value="'. (getenv('BASE_URL') ?: 'http://localhost/myfiles/public_html') .'/payment_success.php"/>
+					                <input type="hidden" name="notify_url" value="'. (getenv('BASE_URL') ?: 'http://localhost/myfiles/public_html') .'/payment_success.php">
+									<input type="hidden" name="cancel_return" value="'. (getenv('BASE_URL') ?: 'http://localhost/myfiles/public_html') .'/cancel.php"/>
 									<input type="hidden" name="currency_code" value="Ksh"/>
 									<input type="hidden" name="custom" value="'.$_SESSION["uid"].'"/>
 									<input type="submit" id="submit" name="login_user_with_product" name="submit" class="btn btn-success" value="Ready to Checkout">

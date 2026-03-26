@@ -8,10 +8,10 @@ $email    = "";
 $errors = array(); 
 
 // connect to the database
-define('DB_SERVER', 'localhost');
-   define('DB_USERNAME', 'PuneethReddy');
-   define('DB_PASSWORD', '');
-   define('DB_DATABASE', 'ecommerece');
+define('DB_SERVER', getenv('DB_HOST') ?: 'localhost');
+define('DB_USERNAME', getenv('DB_USER') ?: 'PuneethReddy');
+define('DB_PASSWORD', getenv('DB_PASSWORD') ?: '');
+define('DB_DATABASE', getenv('DB_NAME') ?: 'ecommerece');
    $db = mysqli_connect(DB_SERVER,DB_USERNAME,DB_PASSWORD,DB_DATABASE);
 if (!$db) {
     die("Connection failed: " . mysqli_connect_error());
